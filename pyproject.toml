@@ -18,6 +18,8 @@ dependencies = [
     "langchain-core",
     "langchain-google-genai",
     "sse-starlette",
+    "python-multipart",
+    "numpy",
 ]
 
 [project.optional-dependencies]
@@ -25,7 +27,7 @@ dev = [
     "pytest",
 ]
 media = [
-    "pymupdf",
+    "pypdf",
     "faster-whisper",
     "pytesseract",
     "pdf2image",
