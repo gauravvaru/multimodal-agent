@@ -6,20 +6,19 @@ build-backend = "setuptools.build_meta"
 name = "multimodal-agent"
 version = "0.1.0"
 description = "Production-oriented multimodal agentic intelligence platform"
-readme = "PROJECT_SPEC.md"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi",
-    "pydantic",
-    "pydantic-settings",
-    "uvicorn",
-    "langgraph",
-    "langchain",
-    "langchain-core",
-    "langchain-google-genai",
-    "sse-starlette",
-    "python-multipart",
-    "numpy",
+    "fastapi~=0.141",
+    "pydantic~=2.13",
+    "pydantic-settings~=2.15",
+    "uvicorn~=0.52",
+    "langgraph~=1.2",
+    "langchain-core~=1.5",
+    "langchain-google-genai~=4.3",
+    "sse-starlette~=3.4",
+    "python-multipart~=0.0.32",
+    "numpy~=2.4",
 ]
 
 [project.optional-dependencies]
@@ -27,11 +26,11 @@ dev = [
     "pytest",
 ]
 media = [
-    "pypdf",
-    "faster-whisper",
-    "pytesseract",
-    "pdf2image",
-    "youtube-transcript-api"
+    "pypdf~=6.15",
+    "faster-whisper~=1.2",
+    "pytesseract~=0.3",
+    "pdf2image~=1.17",
+    "youtube-transcript-api~=1.2",
 ]
 
 [tool.setuptools.packages.find]

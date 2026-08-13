@@ -64,6 +64,7 @@ export async function runAgentStream(
   const decoder = new TextDecoder();
   let buffer = "";
   let finalResponse: AgentRunResponse | null = null;
+  const capturedErrors: string[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -78,6 +79,9 @@ export async function runAgentStream(
     for (const part of parts) {
       for (const event of parseSseChunk(part)) {
         onEvent(event);
+        if (event.type === "error" && event.errors) {
+          capturedErrors.push(...event.errors);
+        }
         if (event.type === "complete" && event.response) {
           finalResponse = event.response;
         }
@@ -88,6 +92,9 @@ export async function runAgentStream(
   if (buffer.trim()) {
     for (const event of parseSseChunk(buffer)) {
       onEvent(event);
+      if (event.type === "error" && event.errors) {
+        capturedErrors.push(...event.errors);
+      }
       if (event.type === "complete" && event.response) {
         finalResponse = event.response;
       }
@@ -95,7 +102,10 @@ export async function runAgentStream(
   }
 
   if (!finalResponse) {
-    throw new ApiError(response.status, ["Stream ended without a final response."]);
+    throw new ApiError(
+      response.status,
+      capturedErrors.length ? capturedErrors : ["Stream ended without a final response."],
+    );
   }
 
   return finalResponse;

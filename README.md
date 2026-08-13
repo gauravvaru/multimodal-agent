@@ -33,7 +33,7 @@ User Query + Uploads (PDF, Image, Audio)
        ┌──────────────────┐
        │  Tool Registry   │
        │                  │
-       │ - PyMuPDF / OCR  │ (PDF text & layout extraction)
+       │ - pypdf / OCR    │ (PDF text & layout extraction)
        │ - Whisper / Audio│ (Audio transcription)
        │ - Code Analyzer  │ (Image/code explanation)
        │ - YouTube API    │ (Transcript fetching)
@@ -63,7 +63,7 @@ User Query + Uploads (PDF, Image, Audio)
 1. **Multimodal File Support**: Ingests PDF documents, images (PNG, JPG), audio files (MP3, WAV, M4A), and YouTube URLs in a single request.
 2. **Intent Detection & Ambiguity Handling**: Classifies user queries into task categories. If a query is ambiguous, it requests clarification before executing tools.
 3. **Autonomous Planning**: Constructs minimal tool execution sequences using LangGraph and validates plan safety before tool invocation.
-4. **Document Extraction & OCR**: Uses PyMuPDF for fast text extraction with automatic Tesseract OCR fallback for scanned or image-based PDFs.
+4. **Document Extraction & OCR**: Uses pypdf for fast text extraction with automatic Tesseract OCR fallback for scanned or image-based PDFs.
 5. **Audio Transcription**: Uses `faster-whisper` and `ffmpeg` for segment-level audio transcription and summarization.
 6. **YouTube Integration**: Automatically extracts YouTube links from input text or PDFs and fetches transcript text for downstream analysis.
 7. **Cross-Input Reasoning**: Compares content across multiple files (e.g., matching audio transcripts against PDF reports).
@@ -75,9 +75,9 @@ User Query + Uploads (PDF, Image, Audio)
 
 * **Backend**: Python 3.11, FastAPI, Uvicorn, Pydantic v2
 * **Agent Framework**: LangGraph, LangChain Core, LangChain Google GenAI
-* **Media & Processing**: PyMuPDF, pytesseract, pdf2image, faster-whisper, youtube-transcript-api
+* **Media & Processing**: pypdf, pytesseract, pdf2image, faster-whisper, youtube-transcript-api
 * **Frontend**: React, TypeScript, Vite
-* **Deployment**: Docker, Docker Compose
+* **Deployment**: Docker (Render — two-service setup)
 
 ---
 
@@ -128,17 +128,26 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
-## Docker Deployment
+## Deployment (Render)
 
-Build and run the single-container deployment (includes all native OCR and media dependencies):
+The project is deployed on Render as **two separate services**:
 
-```bash
-# Build Docker image
-docker build -t multimodal-agent .
+### Backend API (Docker Web Service)
 
-# Run container
-docker run -p 8000:8000 -e GEMINI_API_KEY="your_api_key_here" multimodal-agent
-```
+A Docker-based web service that runs the FastAPI backend. The `Dockerfile` in the repo root installs all system dependencies (Tesseract, Poppler, FFmpeg) and starts Uvicorn.
+
+- **Build**: `docker build -t multimodal-agent .`
+- **Start Command**: `uvicorn multimodal_agent.main:app --host 0.0.0.0 --port 8000`
+- **Environment Variables**: `GEMINI_API_KEY`, `LLM_MODEL`, etc.
+
+### Frontend (Static Site)
+
+A Render Static Site that builds the Vite/React app from `frontend/` and serves the resulting `dist/` directory.
+
+- **Root Directory**: `frontend`
+- **Build Command**: `npm install && npm run build`
+- **Publish Directory**: `frontend/dist`
+- **Environment Variables**: `VITE_API_URL` — set to the backend service URL (e.g., `https://multimodal-agent-api.onrender.com`).
 
 ---
 

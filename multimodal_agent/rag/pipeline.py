@@ -1,7 +1,11 @@
+import logging
 from typing import Any
 
 import numpy as np
 from pydantic import BaseModel, Field
+
+
+logger = logging.getLogger(__name__)
 
 
 class EvidenceItem(BaseModel):
@@ -43,7 +47,7 @@ class RAGPipeline:
                     results.append(EvidenceItem(document=doc_meta.get('document', 'session'), page=doc_meta.get('page'), chunk=doc_meta['text'], text=doc_meta['text'], retrieval_score=float(scores[idx])))
             return results
         except Exception as e:
-            print(f'RAG Retrieval error: {e}')
+            logger.warning('RAG Retrieval error: %s', e)
             return []
 
     def index_documents(self, documents: list[dict[str, Any]]) -> None:
@@ -78,6 +82,6 @@ class RAGPipeline:
             emb_results = self.embedder.embed_documents(texts)
             self.embeddings = [np.array(e) for e in emb_results]
         except Exception as e:
-            print(f'Embedding error: {e}')
+            logger.warning('Embedding error: %s', e)
             self.embeddings = []
             self.documents = []
