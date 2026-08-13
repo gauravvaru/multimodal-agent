@@ -11,12 +11,25 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi",
     "pydantic",
+    "pydantic-settings",
     "uvicorn",
+    "langgraph",
+    "langchain",
+    "langchain-core",
+    "langchain-google-genai",
+    "sse-starlette",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
+]
+media = [
+    "pymupdf",
+    "faster-whisper",
+    "pytesseract",
+    "pdf2image",
+    "youtube-transcript-api"
 ]
 
 [tool.setuptools.packages.find]
