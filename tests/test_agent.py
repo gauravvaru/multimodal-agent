@@ -62,15 +62,16 @@ def test_plan_can_be_stored() -> None:
 
 def test_evidence_can_be_stored() -> None:
     item = Evidence(
-        document="report.pdf",
+        source_id="artifact-1",
+        filename="report.pdf",
+        source_type="pdf",
         page=3,
-        chunk="chunk-1",
-        text="Revenue grew 12%.",
-        retrieval_score=0.88,
+        extracted_text="Revenue grew 12%.",
+        relevance_score=0.88,
     )
     state = AgentState(evidence=[item])
-    assert state.evidence[0].document == "report.pdf"
-    assert state.evidence[0].retrieval_score == 0.88
+    assert state.evidence[0].filename == "report.pdf"
+    assert state.evidence[0].relevance_score == 0.88
 
 
 def test_final_response_can_be_stored() -> None:
