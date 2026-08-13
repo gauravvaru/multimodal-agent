@@ -36,7 +36,8 @@ export async function runAgentStream(
     formData.append("files", file);
   });
 
-  const response = await fetch("/api/v1/agent/run/stream", {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+  const response = await fetch(`${API_BASE_URL}/api/v1/agent/run/stream`, {
     method: "POST",
     body: formData,
   });
@@ -110,7 +111,8 @@ export async function runAgent(
     formData.append("files", file);
   });
 
-  const response = await fetch("/api/v1/agent/run", {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+  const response = await fetch(`${API_BASE_URL}/api/v1/agent/run`, {
     method: "POST",
     body: formData,
   });
