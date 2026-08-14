@@ -62,7 +62,7 @@ def _rag_tool(**kwargs: str) -> ToolResult:
 
 
 def _code_analysis_tool(**kwargs: str) -> ToolResult:
-    code = kwargs.get("text") or kwargs.get("source", "")
+    code = kwargs.get("text") or kwargs.get("source") or kwargs.get("code", "")
     return explain_code(code)
 
 
