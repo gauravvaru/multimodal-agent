@@ -1,9 +1,5 @@
-"""Summarization tool."""
-
 from __future__ import annotations
-
 import time
-
 from multimodal_agent.config.settings import get_settings
 from multimodal_agent.models.synthesis import SummaryResponse, format_summary_response
 from multimodal_agent.models.tools import ToolResult
@@ -18,7 +14,6 @@ _TOOL_NAME = "summarize"
 
 
 def summarize_text(text: str) -> ToolResult:
-    """Summarize provided text using the configured LLM."""
     started = time.perf_counter()
 
     if text is None or not str(text).strip():

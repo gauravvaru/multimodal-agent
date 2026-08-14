@@ -1,15 +1,8 @@
-"""Outbound API response models."""
-
 from typing import Any
-
 from pydantic import BaseModel, Field
-
 from multimodal_agent.models.tools import ToolResult
 
-
 class AgentResponse(BaseModel):
-    """Primary agent invocation response."""
-
     request_id: str
     answer: str
     clarification_required: bool = False

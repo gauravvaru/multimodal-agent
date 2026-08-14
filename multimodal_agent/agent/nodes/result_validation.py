@@ -1,9 +1,5 @@
-"""Result validation node."""
-
 from __future__ import annotations
-
 from typing import Any
-
 from multimodal_agent.agent.types import StateUpdate
 from multimodal_agent.config.settings import Settings, get_settings
 from multimodal_agent.models.state import AgentState
@@ -13,13 +9,11 @@ from multimodal_agent.utilities.tracing import TraceEvent
 
 _USABLE_STATUSES = frozenset({ValidationStatus.SUCCESS, ValidationStatus.PARTIAL})
 
-
 def validate_results(
     state: AgentState,
     *,
     settings: Settings | None = None,
 ) -> StateUpdate:
-    """Validate tool outputs and record retry information when needed."""
     if not state.tool_results:
         return {
             "errors": ["Tool results are required before result validation"],
@@ -167,7 +161,6 @@ def _validate_youtube_result(result: ToolResult, *, settings: Settings) -> Resul
         validation_error=message,
     )
 
-
 def _validate_audio_result(result: ToolResult, *, settings: Settings) -> ResultValidationOutcome:
     _ = settings
     transcript = _extract_text(result.data)
@@ -178,7 +171,6 @@ def _validate_audio_result(result: ToolResult, *, settings: Settings) -> ResultV
         validation_status=ValidationStatus.RETRYABLE_FAILURE,
         validation_error="Audio transcription returned no text",
     )
-
 
 def _validate_rag_result(result: ToolResult, *, settings: Settings) -> ResultValidationOutcome:
     evidence_items = _extract_evidence_items(result.data)
@@ -206,7 +198,6 @@ def _validate_generic_result(result: ToolResult, *, settings: Settings) -> Resul
         validation_status=ValidationStatus.FATAL_FAILURE,
         validation_error=result.error or f"Tool '{result.tool_name}' returned an invalid status",
     )
-
 
 def _apply_retry_policy(
     outcome: ResultValidationOutcome,

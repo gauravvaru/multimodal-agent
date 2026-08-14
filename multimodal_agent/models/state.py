@@ -1,12 +1,7 @@
-"""LangGraph agent state contract."""
-
 from __future__ import annotations
-
 import operator
 from typing import Annotated, Any
-
 from pydantic import BaseModel, Field
-
 from multimodal_agent.models.artifacts import NormalizedArtifact
 from multimodal_agent.models.evidence import Evidence
 from multimodal_agent.models.intent import Intent
@@ -23,15 +18,7 @@ EvidenceItems = Annotated[list[Evidence], operator.add]
 ErrorMessages = Annotated[list[str], operator.add]
 TraceEvents = Annotated[list[TraceEvent], operator.add]
 
-
 class AgentState(BaseModel):
-    """Shared state passed through the LangGraph workflow.
-
-    Scalar and object fields use last-write-wins semantics.
-    List fields annotated with ``operator.add`` accumulate updates so nodes
-    can return deltas instead of rewriting the full list.
-    """
-
     request_id: str = ""
     user_query: str = ""
     input_artifacts: InputArtifacts = Field(default_factory=list)

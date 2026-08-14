@@ -1,5 +1,3 @@
-"""Intent detection node."""
-
 from __future__ import annotations
 
 from multimodal_agent.agent.intent_rules import (
@@ -17,7 +15,6 @@ def detect_intent(
     *,
     intent_service: IntentService | None = None,
 ) -> StateUpdate:
-    """Determine user intent from normalized inputs."""
     if requires_semantic_intent(state):
         if intent_service is None:
             return {

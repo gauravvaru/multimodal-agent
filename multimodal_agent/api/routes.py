@@ -1,9 +1,5 @@
-"""FastAPI route definitions."""
-
 from __future__ import annotations
-
 from typing import Annotated
-
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
 
@@ -29,13 +25,10 @@ router = APIRouter()
 
 
 def get_agent_service() -> AgentService:
-    """Provide the application agent service."""
     return AgentService()
-
 
 @router.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
-    """Liveness probe."""
     return HealthResponse(status="ok")
 
 
@@ -55,7 +48,6 @@ async def run_agent(
     settings: Annotated[Settings, Depends(get_settings)],
     files: Annotated[list[UploadFile] | None, File()] = None,
 ) -> AgentRunResponse:
-    """Run the multimodal agent against a text query and optional uploads."""
     normalized_query = query.strip()
 
     if not normalized_query:
@@ -154,14 +146,12 @@ async def run_agent_stream(
         },
     )
 
-
 async def _build_artifacts_from_uploads(
     files: list[UploadFile],
     *,
     max_size_mb: int,
     max_files: int,
 ) -> tuple[list[InputArtifact], list[str]]:
-    """Validate uploads and convert them into input artifacts."""
     artifacts: list[InputArtifact] = []
     errors: list[str] = list(validate_upload_count(len(files), max_files=max_files))
     if errors:
@@ -193,7 +183,6 @@ async def _build_artifacts_from_uploads(
         )
 
     return artifacts, errors
-
 
 def _contains_oversized_error(errors: list[str]) -> bool:
     return any("file exceeds maximum size" in error for error in errors)

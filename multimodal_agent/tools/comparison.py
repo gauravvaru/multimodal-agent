@@ -1,7 +1,4 @@
-"""Cross-input comparison tool."""
-
 from __future__ import annotations
-
 import time
 
 from multimodal_agent.models.synthesis import ComparisonResponse, format_comparison_response
@@ -18,7 +15,6 @@ _TOOL_NAME = "compare"
 
 
 def compare_inputs(sources: list[str]) -> ToolResult:
-    """Compare multiple normalized inputs."""
     started = time.perf_counter()
     normalized = [item.strip() for item in sources if isinstance(item, str) and item.strip()]
 

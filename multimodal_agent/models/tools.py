@@ -1,13 +1,7 @@
-"""Tool execution contract."""
-
 from typing import Any
-
 from pydantic import BaseModel, Field
 
-
 class ToolResult(BaseModel):
-    """Standard return shape for every tool."""
-
     tool_name: str
     status: str
     data: Any = None

@@ -1,7 +1,4 @@
-"""Agent invocation service."""
-
 from __future__ import annotations
-
 import uuid
 from collections.abc import Callable, Iterator
 from typing import Any
@@ -25,10 +22,7 @@ from multimodal_agent.utilities.tracing import TraceEvent
 GraphInvoker = Callable[[AgentState], dict[str, Any]]
 GraphStreamer = Callable[[AgentState], Iterator[Any]]
 
-
 class AgentService:
-    """Coordinate request handling outside FastAPI route handlers."""
-
     def __init__(
         self,
         *,
@@ -47,7 +41,6 @@ class AgentService:
         query: str,
         files: list[InputArtifact] | None = None,
     ) -> AgentResponse:
-        """Execute the agent workflow for a user query and optional files."""
         request_id = self._request_id_factory()
         artifacts = list(files or [])
 
@@ -67,7 +60,7 @@ class AgentService:
 
         try:
             final_state = self._graph_invoker(initial_state)
-        except Exception:  # noqa: BLE001 - graph failures must return a stable API response
+        except Exception: 
             import traceback
             traceback.print_exc()
             return build_error_response(
@@ -83,7 +76,6 @@ class AgentService:
         query: str,
         files: list[InputArtifact] | None = None,
     ) -> Iterator[AgentStreamEvent]:
-        """Execute the agent workflow and yield safe streaming events."""
         request_id = self._request_id_factory()
         artifacts = list(files or [])
 
@@ -140,9 +132,7 @@ class AgentService:
     def _default_graph_streamer(self, state: AgentState) -> Iterator[Any]:
         return stream_graph_with_observability(state, self._resolve_graph_dependencies())
 
-
 def validate_run_inputs(query: str, files: list[InputArtifact]) -> list[str]:
-    """Validate inbound service inputs before graph invocation."""
     errors: list[str] = []
 
     if not query or not query.strip():
@@ -157,13 +147,11 @@ def validate_run_inputs(query: str, files: list[InputArtifact]) -> list[str]:
 
     return errors
 
-
 def state_to_response(
     final_state: dict[str, Any] | AgentState,
     *,
     request_id: str,
 ) -> AgentResponse:
-    """Convert final LangGraph state into the public response model."""
     state_dict = final_state.model_dump() if isinstance(final_state, AgentState) else final_state
 
     clarification_required = bool(state_dict.get("clarification_required"))
@@ -189,28 +177,23 @@ def state_to_response(
         errors=errors,
     )
 
-
 def build_error_response(
     *,
     request_id: str,
     errors: list[str],
     answer: str,
 ) -> AgentResponse:
-    """Return a stable error response without invoking the graph."""
     return AgentResponse(
         request_id=request_id,
         answer=answer,
         errors=errors,
     )
-
-
 def resolve_answer(
     state_dict: dict[str, Any],
     *,
     clarification_required: bool,
     errors: list[str],
 ) -> str:
-    """Derive the public answer string from final graph state."""
     final_response = state_dict.get("final_response")
     if isinstance(final_response, str) and final_response.strip():
         return final_response
@@ -223,9 +206,7 @@ def resolve_answer(
 
     return ""
 
-
 def serialize_trace(trace: list[Any]) -> list[Any]:
-    """Normalize trace events for API serialization."""
     serialized: list[Any] = []
     for item in trace:
         if isinstance(item, TraceEvent):
@@ -236,9 +217,7 @@ def serialize_trace(trace: list[Any]) -> list[Any]:
             serialized.append({"step": str(item), "detail": {}})
     return serialized
 
-
 def serialize_evidence(evidence: list[Any]) -> list[Any]:
-    """Normalize evidence items for API serialization."""
     serialized: list[Any] = []
     for item in evidence:
         if isinstance(item, Evidence):
@@ -249,9 +228,7 @@ def serialize_evidence(evidence: list[Any]) -> list[Any]:
             serialized.append(item)
     return serialized
 
-
 def normalize_tool_results(tool_results: list[Any]) -> list[ToolResult]:
-    """Normalize tool results into the public response contract."""
     normalized: list[ToolResult] = []
     for item in tool_results:
         if isinstance(item, ToolResult):
@@ -259,7 +236,6 @@ def normalize_tool_results(tool_results: list[Any]) -> list[ToolResult]:
         elif isinstance(item, dict):
             normalized.append(ToolResult.model_validate(item))
     return normalized
-
 
 def _validation_error_payload(request_id: str, errors: list[str]) -> dict[str, Any]:
     response = build_error_response(

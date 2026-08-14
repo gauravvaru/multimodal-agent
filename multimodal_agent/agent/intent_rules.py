@@ -1,9 +1,5 @@
-"""Deterministic intent detection helpers."""
-
 from __future__ import annotations
-
 import re
-
 from multimodal_agent.models.intent import Intent
 from multimodal_agent.models.state import AgentState
 from multimodal_agent.utilities.urls import is_youtube_url
@@ -20,12 +16,10 @@ _COMPARE_PATTERN = re.compile(r"\b(compare|difference between|vs\.?|same topic)\
 
 
 def requires_semantic_intent(state: AgentState) -> bool:
-    """Return True when deterministic intent rules cannot decide."""
     return detect_intent_deterministic(state) is None
 
 
 def detect_intent_deterministic(state: AgentState) -> Intent | None:
-    """Infer intent using deterministic rules, or None if semantic analysis is needed."""
     query = state.user_query.strip()
     if not query:
         return None

@@ -1,10 +1,6 @@
-"""Planning service interface and default implementation."""
-
 from __future__ import annotations
-
 import json
 from typing import Any, Protocol
-
 from pydantic import BaseModel, Field
 
 from multimodal_agent.agent.plan_validation import (
@@ -17,25 +13,16 @@ from multimodal_agent.models.state import AgentState
 from multimodal_agent.tools.registry import ToolRegistry, create_default_tool_registry
 from multimodal_agent.tools.specs import ALLOWED_TOOL_INPUTS
 
-
 class PlanStepDraft(BaseModel):
-    """Structured plan step returned by the planner LLM."""
-
     step_id: str
     tool_name: str
     inputs: dict[str, str] = Field(default_factory=dict)
     depends_on: list[str] = Field(default_factory=list)
 
-
 class PlanDraft(BaseModel):
-    """Structured plan returned by semantic planning."""
-
     steps: list[PlanStepDraft] = Field(default_factory=list)
 
-
 class PlannerContext(BaseModel):
-    """Semantic planning context without low-level detection tasks."""
-
     user_query: str
     intent_name: str
     artifact_types: list[str]
@@ -46,31 +33,20 @@ class PlannerContext(BaseModel):
 
 
 class PlanValidationError(Exception):
-    """Raised when a generated plan fails validation."""
-
     def __init__(self, errors: list[str]) -> None:
         self.errors = errors
         super().__init__("; ".join(errors))
 
 
 class PlannerLLMClient(Protocol):
-    """Sync structured planner LLM interface."""
-
     def generate_plan(self, context: PlannerContext) -> PlanDraft:
         """Return a structured plan draft for the request."""
 
-
 class PlannerService:
-    """Semantic plan construction interface."""
-
     def create_plan(self, state: AgentState) -> Plan:
-        """Build the minimum required tool sequence for the request."""
         raise NotImplementedError
 
-
 class AgentPlanner(PlannerService):
-    """Build and validate structured execution plans."""
-
     def __init__(
         self,
         registry: ToolRegistry | None = None,
@@ -100,9 +76,7 @@ class AgentPlanner(PlannerService):
             raise PlanValidationError(errors)
         return plan
 
-
 def build_planner_context(state: AgentState, registry: ToolRegistry) -> PlannerContext:
-    """Build semantic planning context from agent state."""
     hints = list(state.constraints.get("planning_hints", []) or [])
     if isinstance(hints, str):
         hints = [hints]
@@ -122,7 +96,6 @@ def build_planner_context(state: AgentState, registry: ToolRegistry) -> PlannerC
 
 
 def build_deterministic_plan_draft(state: AgentState, context: PlannerContext) -> PlanDraft | None:
-    """Derive a plan without LLM calls for supported request patterns."""
     artifact_types = set(context.artifact_types)
     intent_name = context.intent_name
     query_lower = state.user_query.lower()
@@ -183,7 +156,6 @@ def build_deterministic_plan_draft(state: AgentState, context: PlannerContext) -
 
     return None
 
-
 def build_planner_prompt(context: PlannerContext) -> str:
     """Render a semantic planning prompt for structured LLM output."""
     schema = PlanDraft.model_json_schema()
@@ -203,13 +175,11 @@ def build_planner_prompt(context: PlannerContext) -> str:
         f"constraints: {context.constraints}\n"
     )
 
-
 def parse_plan_draft(payload: str | dict[str, Any]) -> PlanDraft:
     """Parse structured planner output into a validated draft."""
     if isinstance(payload, str):
         return PlanDraft.model_validate_json(payload)
     return PlanDraft.model_validate(payload)
-
 
 def plan_from_draft(draft: PlanDraft) -> Plan:
     """Convert a validated draft into a Plan model."""
@@ -225,7 +195,6 @@ def plan_from_draft(draft: PlanDraft) -> Plan:
         ]
     )
 
-
 def validate_generated_plan(
     plan: Plan,
     *,
@@ -233,7 +202,6 @@ def validate_generated_plan(
     state: AgentState | None = None,
     max_steps: int | None = None,
 ) -> list[str]:
-    """Validate a generated plan against registry and execution constraints."""
     limit = max_steps if max_steps is not None else get_max_agent_steps()
     errors = collect_plan_errors(plan)
 
@@ -259,7 +227,6 @@ def validate_generated_plan(
 
     errors.extend(_validate_impossible_steps(plan, state))
     return _dedupe_preserve_order(errors)
-
 
 def _summarize_pdf_plan(state: AgentState, *, requires_youtube: bool) -> PlanDraft:
     pdf_input = _artifact_input(state, "pdf")
@@ -288,7 +255,6 @@ def _summarize_pdf_plan(state: AgentState, *, requires_youtube: bool) -> PlanDra
     )
     return PlanDraft(steps=steps)
 
-
 def _audio_pdf_comparison_plan(state: AgentState) -> PlanDraft:
     return PlanDraft(
         steps=[
@@ -310,13 +276,11 @@ def _audio_pdf_comparison_plan(state: AgentState) -> PlanDraft:
         ]
     )
 
-
 def _artifact_input(state: AgentState, artifact_type: str) -> dict[str, str]:
     for artifact in state.normalized_contents:
         if artifact.artifact_type == artifact_type:
             return {"artifact_id": artifact.artifact_id}
     return {}
-
 
 def _artifact_planning_hints(artifact: NormalizedArtifact) -> list[str]:
     hints: list[str] = []
@@ -326,7 +290,6 @@ def _artifact_planning_hints(artifact: NormalizedArtifact) -> list[str]:
         hints.append(f"youtube_url={artifact.metadata['youtube_url']}")
     return hints
 
-
 def _requires_youtube_transcript(state: AgentState, query_lower: str) -> bool:
     if "youtube" in query_lower:
         return True
@@ -334,7 +297,6 @@ def _requires_youtube_transcript(state: AgentState, query_lower: str) -> bool:
         hint.startswith("youtube_url=") or hint == "pdf_contains_youtube_url"
         for hint in _all_planning_hints(state)
     )
-
 
 def _youtube_url_from_state(state: AgentState) -> str | None:
     for artifact in state.normalized_contents:
@@ -346,7 +308,6 @@ def _youtube_url_from_state(state: AgentState) -> str | None:
             return hint.split("=", 1)[1]
     return None
 
-
 def _all_planning_hints(state: AgentState) -> list[str]:
     hints = list(state.constraints.get("planning_hints", []) or [])
     if isinstance(hints, str):
@@ -354,7 +315,6 @@ def _all_planning_hints(state: AgentState) -> list[str]:
     for artifact in state.normalized_contents:
         hints.extend(_artifact_planning_hints(artifact))
     return hints
-
 
 def _validate_step_inputs(step: PlanStep) -> list[str]:
     allowed = ALLOWED_TOOL_INPUTS.get(step.tool_name)
@@ -368,7 +328,6 @@ def _validate_step_inputs(step: PlanStep) -> list[str]:
         if not isinstance(value, str):
             errors.append(f"step {step.step_id}: input '{key}' must be a string")
     return errors
-
 
 def _validate_impossible_steps(plan: Plan, state: AgentState | None) -> list[str]:
     errors: list[str] = []
@@ -406,7 +365,6 @@ def _validate_impossible_steps(plan: Plan, state: AgentState | None) -> list[str
 
     return errors
 
-
 def _validate_against_artifacts(plan: Plan, state: AgentState) -> list[str]:
     errors: list[str] = []
     artifact_ids = {artifact.artifact_id for artifact in state.normalized_contents}
@@ -424,7 +382,6 @@ def _validate_against_artifacts(plan: Plan, state: AgentState) -> list[str]:
         errors.append("plan contains more pdf_extract steps than available PDF artifacts")
 
     return errors
-
 
 def _dedupe_preserve_order(items: list[str]) -> list[str]:
     seen: set[str] = set()

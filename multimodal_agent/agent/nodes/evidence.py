@@ -1,9 +1,5 @@
-"""Evidence construction node."""
-
 from __future__ import annotations
-
 from typing import Any
-
 from multimodal_agent.agent.types import StateUpdate
 from multimodal_agent.models.artifacts import NormalizedArtifact
 from multimodal_agent.models.evidence import Evidence
@@ -38,7 +34,6 @@ def build_evidence(
 
 
 def collect_evidence(state: AgentState) -> list[Evidence]:
-    """Collect evidence from tool results using normalized artifact context."""
     artifact_lookup = _build_artifact_lookup(state.normalized_contents)
     evidence: list[Evidence] = []
 
@@ -51,7 +46,6 @@ def collect_evidence(state: AgentState) -> list[Evidence]:
 
 
 def dedupe_evidence(items: list[Evidence]) -> list[Evidence]:
-    """Remove duplicate evidence entries while preserving order."""
     seen: set[tuple[Any, ...]] = set()
     unique: list[Evidence] = []
     for item in items:

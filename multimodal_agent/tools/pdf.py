@@ -1,15 +1,10 @@
-"""PDF extraction tool."""
-
 from __future__ import annotations
-
 import io
 import logging
 import time
 from typing import Any
-
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
-
 from multimodal_agent.models.tools import ToolResult
 from multimodal_agent.services.storage_service import load_artifact_bytes
 
@@ -18,7 +13,6 @@ _logger = logging.getLogger(__name__)
 
 
 def extract_pdf(source: str, *, artifact_id: str | None = None) -> ToolResult:
-    """Extract text and structure from a PDF deterministically."""
     started = time.perf_counter()
 
     if not source or not source.strip():
@@ -101,9 +95,8 @@ def extract_pdf(source: str, *, artifact_id: str | None = None) -> ToolResult:
             
             page_count = len(images)
             full_text = "\n\n".join(text_parts)
-        except Exception as exc:  # noqa: BLE001 - Fallback explicitly catches all OCR failures
+        except Exception as exc: 
             _logger.warning(f"OCR fallback failed: {exc}")
-            # Fallback to the original pypdf result if OCR fails
     latency_ms = _elapsed_ms(started)
     filename = _display_filename(source)
 
@@ -160,7 +153,6 @@ def _failed(*, error: str, latency_ms: float) -> ToolResult:
         error=error,
         latency_ms=latency_ms,
     )
-
 
 def _elapsed_ms(started: float) -> float:
     return round((time.perf_counter() - started) * 1000, 2)

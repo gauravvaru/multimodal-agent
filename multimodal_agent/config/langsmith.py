@@ -1,14 +1,9 @@
-"""LangSmith tracing configuration and run metadata helpers."""
-
 from __future__ import annotations
-
 import os
 import time
 from functools import lru_cache
 from typing import Any
-
 from pydantic import BaseModel, Field
-
 from multimodal_agent.models.state import AgentState
 
 LANGSMITH_TRACING_ENV = "LANGSMITH_TRACING"
@@ -37,34 +32,23 @@ _SENSITIVE_METADATA_KEYS = frozenset(
 
 class LangSmithSettings(BaseModel):
     """LangSmith tracing settings loaded from environment variables."""
-
     tracing_enabled: bool = False
     api_key: str | None = None
     project: str = Field(default="multimodal-agent", min_length=1)
 
-
 @lru_cache
 def get_langsmith_settings() -> LangSmithSettings:
-    """Load LangSmith settings from environment variables."""
     return LangSmithSettings(
         tracing_enabled=_env_flag(LANGSMITH_TRACING_ENV),
         api_key=os.environ.get(LANGSMITH_API_KEY_ENV) or None,
         project=os.environ.get(LANGSMITH_PROJECT_ENV, "multimodal-agent"),
     )
 
-
 def is_langsmith_tracing_active(settings: LangSmithSettings | None = None) -> bool:
-    """Return True when LangSmith tracing is configured and enabled."""
     resolved = settings or get_langsmith_settings()
     return resolved.tracing_enabled and bool(resolved.api_key)
 
-
 def configure_langsmith_tracing(settings: LangSmithSettings | None = None) -> bool:
-    """Apply LangSmith tracing environment configuration.
-
-    Uses the official LangChain/LangGraph integration via environment variables.
-    Returns True when tracing is active.
-    """
     resolved = settings or get_langsmith_settings()
     active = is_langsmith_tracing_active(resolved)
 
@@ -81,13 +65,11 @@ def configure_langsmith_tracing(settings: LangSmithSettings | None = None) -> bo
     os.environ[LANGCHAIN_PROJECT_ENV] = resolved.project
     return True
 
-
 def build_graph_run_config(
     state: AgentState,
     *,
     recursion_limit: int = 100,
 ) -> dict[str, Any]:
-    """Build a LangGraph RunnableConfig with safe request metadata."""
     metadata = build_initial_run_metadata(state)
     return {
         "run_name": f"agent-run:{state.request_id}",
@@ -96,9 +78,7 @@ def build_graph_run_config(
         "recursion_limit": recursion_limit,
     }
 
-
 def build_initial_run_metadata(state: AgentState) -> dict[str, Any]:
-    """Build safe metadata available before graph execution."""
     return sanitize_metadata(
         {
             "request_id": state.request_id,
@@ -107,13 +87,11 @@ def build_initial_run_metadata(state: AgentState) -> dict[str, Any]:
         }
     )
 
-
 def build_final_run_metadata(
     final_state: dict[str, Any] | AgentState,
     *,
     latency_ms: float,
 ) -> dict[str, Any]:
-    """Build safe metadata after graph execution completes."""
     state_dict = final_state.model_dump() if isinstance(final_state, AgentState) else final_state
     tool_results = state_dict.get("tool_results") or []
     errors = list(state_dict.get("errors") or [])
@@ -136,14 +114,12 @@ def build_final_run_metadata(
         }
     )
 
-
 def invoke_graph_with_observability(
     state: AgentState,
     dependencies: Any,
     *,
     recursion_limit: int = 100,
 ) -> dict[str, Any]:
-    """Invoke the agent graph with optional LangSmith tracing."""
     from multimodal_agent.agent.graph import invoke_agent_graph
 
     run_config = build_graph_run_config(state, recursion_limit=recursion_limit)
@@ -174,7 +150,6 @@ def stream_graph_with_observability(
     *,
     recursion_limit: int = 100,
 ):
-    """Stream the agent graph with LangSmith run configuration applied."""
     from multimodal_agent.agent.graph import stream_agent_graph
 
     run_config = build_graph_run_config(state, recursion_limit=recursion_limit)
@@ -185,9 +160,7 @@ def stream_graph_with_observability(
         recursion_limit=recursion_limit,
     )
 
-
 def sanitize_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
-    """Remove sensitive keys and redact secret-like values from metadata."""
     sanitized: dict[str, Any] = {}
     for key, value in metadata.items():
         lowered = key.lower()
@@ -201,7 +174,6 @@ def sanitize_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
         sanitized[key] = value
     return sanitized
 
-
 def _traced_invoke(
     state: AgentState,
     dependencies: Any,
@@ -211,9 +183,7 @@ def _traced_invoke(
     recursion_limit: int,
 ) -> dict[str, Any]:
     from langsmith import traceable
-
     from multimodal_agent.agent.graph import invoke_agent_graph
-
     @traceable(
         name="multimodal_agent_run",
         run_type="chain",
@@ -227,11 +197,9 @@ def _traced_invoke(
             run_config=run_config,
             recursion_limit=recursion_limit,
         )
-
     result = _invoke()
     _record_local_run_metadata(result, started=started)
     return result
-
 
 def _record_local_run_metadata(
     final_state: dict[str, Any] | AgentState,
@@ -242,16 +210,13 @@ def _record_local_run_metadata(
     metadata = build_final_run_metadata(final_state, latency_ms=latency_ms)
     if not is_langsmith_tracing_active():
         return
-
     try:
         from langsmith.run_helpers import get_current_run_tree
     except ImportError:
         return
-
     run_tree = get_current_run_tree()
     if run_tree is None:
         return
-
     run_tree.metadata.update(metadata)
     run_tree.end(
         outputs={
@@ -261,7 +226,6 @@ def _record_local_run_metadata(
             "total_latency_ms": metadata.get("total_latency_ms"),
         }
     )
-
 
 def _infer_task_type(state: AgentState) -> str:
     if state.intent is not None:
@@ -310,5 +274,4 @@ def _looks_like_secret(value: str) -> bool:
 
 
 def clear_langsmith_settings_cache() -> None:
-    """Clear cached LangSmith settings (useful in tests)."""
     get_langsmith_settings.cache_clear()

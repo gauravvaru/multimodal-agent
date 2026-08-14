@@ -1,11 +1,7 @@
-"""Final synthesis node."""
-
 from __future__ import annotations
-
 import json
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
-
 from pydantic import BaseModel
 
 from multimodal_agent.agent.types import StateUpdate
@@ -38,10 +34,7 @@ _INSUFFICIENT_EVIDENCE_MESSAGE = (
     "I don't have enough retrieved evidence to answer that question."
 )
 
-
 class AgentSynthesisService(SynthesisService):
-    """LLM-backed synthesis grounded in tool results and evidence."""
-
     def __init__(self, llm_client: SynthesisLLMClient) -> None:
         self._llm_client = llm_client
 
@@ -57,7 +50,6 @@ class AgentSynthesisService(SynthesisService):
             structured = self._llm_client.synthesize_structured(context, output_model)
         return format_structured_response(structured, intent_name=context.intent_name)
 
-
 def synthesize_response(
     state: AgentState,
     *,
@@ -65,7 +57,6 @@ def synthesize_response(
     llm_client: SynthesisLLMClient | None = None,
     include_trace_summary: bool = True,
 ) -> StateUpdate:
-    """Produce the final text-only response."""
     if state.clarification_required and state.clarification_question:
         return _build_update(
             final_response=state.clarification_question,
@@ -148,7 +139,6 @@ def synthesize_response(
 
 
 def build_synthesis_context(state: AgentState) -> SynthesisContext:
-    """Build grounded synthesis inputs without private reasoning fields."""
     intent_name = state.intent.name if state.intent is not None else "conversational"
     return SynthesisContext(
         user_query=state.user_query,
@@ -158,9 +148,7 @@ def build_synthesis_context(state: AgentState) -> SynthesisContext:
         normalized_contents=[item.model_dump() for item in state.normalized_contents],
     )
 
-
 def select_output_model(state: AgentState) -> type[BaseModel]:
-    """Select the structured output schema for the detected intent."""
     intent_name = state.intent.name if state.intent is not None else "conversational"
     mapping: dict[str, type[BaseModel]] = {
         "summarize": SummaryResponse,
@@ -178,7 +166,6 @@ def select_output_model(state: AgentState) -> type[BaseModel]:
 
 
 def format_structured_response(structured: BaseModel, *, intent_name: str) -> str:
-    """Convert structured synthesis output into user-facing text."""
     if isinstance(structured, SummaryResponse):
         return format_summary_response(structured)
     if isinstance(structured, SentimentResponse):
@@ -195,7 +182,6 @@ def format_structured_response(structured: BaseModel, *, intent_name: str) -> st
 
 
 def build_synthesis_prompt(context: SynthesisContext, output_model: type[BaseModel]) -> str:
-    """Render a grounded synthesis prompt for structured LLM output."""
     schema = output_model.model_json_schema()
     return (
         "Generate the final user-facing response using only the supplied context.\n"
@@ -298,7 +284,6 @@ class SynthesisTimeoutError(Exception):
 
 class SynthesisFailureError(Exception):
     """Raised when synthesis fails unexpectedly."""
-
 
 def _synthesize_with_timeout(service: SynthesisService, state: AgentState) -> str:
     timeout = float(get_settings().llm_timeout_seconds)

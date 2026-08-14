@@ -1,13 +1,7 @@
-"""Evidence contracts."""
-
 from typing import Any
-
 from pydantic import BaseModel, Field
 
-
 class Evidence(BaseModel):
-    """Grounded evidence item with provenance."""
-
     source_id: str | None = None
     filename: str | None = None
     source_type: str

@@ -1,7 +1,4 @@
-"""OCR tool."""
-
 from __future__ import annotations
-
 import io
 import time
 
@@ -15,7 +12,6 @@ _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".tiff", ".bmp"}
 
 
 def run_ocr(source: str) -> ToolResult:
-    """Run OCR on an image using Tesseract when available."""
     started = time.perf_counter()
 
     if not source or not source.strip():
@@ -67,7 +63,7 @@ def run_ocr(source: str) -> ToolResult:
         ocr_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
         text = pytesseract.image_to_string(image).strip()
         confidence = _average_confidence(ocr_data)
-    except Exception as exc:  # noqa: BLE001 - OCR engine failures must degrade gracefully
+    except Exception as exc: 
         return ToolResult(
             tool_name=_TOOL_NAME,
             status="failed",

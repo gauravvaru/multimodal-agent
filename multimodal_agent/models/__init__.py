@@ -1,5 +1,3 @@
-"""Pydantic contracts for API, agent state, and tools."""
-
 from multimodal_agent.models.artifacts import NormalizedArtifact
 from multimodal_agent.models.evidence import Evidence
 from multimodal_agent.models.intent import Intent

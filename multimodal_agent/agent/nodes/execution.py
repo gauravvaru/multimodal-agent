@@ -1,12 +1,8 @@
-"""Tool execution node."""
-
 from __future__ import annotations
-
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
-
 from multimodal_agent.agent.nodes.result_validation import get_max_tool_retries
 from multimodal_agent.agent.plan_validation import get_max_agent_steps
 from multimodal_agent.agent.routing import AGENT_STEP_COUNT_KEY
@@ -22,10 +18,7 @@ from multimodal_agent.utilities.tracing import TraceEvent
 
 _EXECUTOR_SUCCESS_STATUSES = frozenset({"success", "partial"})
 
-
 class ToolExecutor:
-    """Execute a single plan step through the registered tool registry."""
-
     def __init__(
         self,
         registry: ToolRegistry | None = None,
@@ -38,7 +31,6 @@ class ToolExecutor:
         self._max_agent_steps = max_agent_steps
 
     def execute_current_step(self, state: AgentState) -> tuple[ToolResult, PlanStep | None]:
-        """Execute exactly one plan step and return the tool result."""
         if state.plan is None or not state.plan.steps:
             raise ExecutionPreconditionError("No plan available for execution")
 
@@ -74,7 +66,6 @@ class ToolExecutor:
                 ),
                 step,
             )
-
         tool = self._registry.get(step.tool_name)
         resolved_inputs = resolve_tool_inputs(step, state)
 
@@ -82,7 +73,7 @@ class ToolExecutor:
             raw_result = self._invoke_tool(tool, resolved_inputs)
         except ToolExecutionTimeoutError:
             raise
-        except Exception as exc:  # noqa: BLE001 - tool failures must not crash the graph
+        except Exception as exc:
             return (
                 _failed_result(
                     step.tool_name,
@@ -91,7 +82,6 @@ class ToolExecutor:
                 ),
                 step,
             )
-
         return (
             normalize_tool_result(
                 raw_result,
@@ -109,7 +99,6 @@ class ToolExecutor:
         timeout = self._timeout_seconds
         if timeout is None:
             timeout = float(get_settings().request_timeout_seconds)
-
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(tool, **inputs)
             try:
@@ -120,7 +109,6 @@ class ToolExecutor:
     def _is_max_agent_steps_reached(self, state: AgentState) -> bool:
         limit = self._max_agent_steps if self._max_agent_steps is not None else get_max_agent_steps()
         return _agent_step_count(state) >= limit
-
     @staticmethod
     def _retry_limit_exceeded(state: AgentState) -> bool:
         if state.plan is None:
@@ -129,34 +117,24 @@ class ToolExecutor:
         retry_count = state.retry_count or int(state.constraints.get("retry_count", 0))
         return retry_count > max_retries
 
-
 class ExecutionPreconditionError(Exception):
     """Raised when the executor cannot run a step."""
 
-
 class MaxAgentStepsExceededError(Exception):
     """Raised when the configured agent step limit is reached."""
-
     def __init__(self, limit: int) -> None:
         self.limit = limit
         super().__init__(f"Maximum agent steps ({limit}) reached")
 
-
 class RetryLimitExceededError(Exception):
-    """Raised when retry attempts exceed the plan limit."""
-
     def __init__(self, limit: int) -> None:
         self.limit = limit
         super().__init__(f"Retry limit ({limit}) exceeded")
 
-
 class ToolExecutionTimeoutError(Exception):
-    """Raised when a tool exceeds its execution timeout."""
-
     def __init__(self, timeout_seconds: float) -> None:
         self.timeout_seconds = timeout_seconds
         super().__init__("Tool execution timed out")
-
 
 def execute_tools(
     state: AgentState,
@@ -165,13 +143,11 @@ def execute_tools(
     timeout_seconds: float | None = None,
     max_agent_steps: int | None = None,
 ) -> StateUpdate:
-    """Execute the current plan step through registered tools."""
     executor = ToolExecutor(
         registry=registry,
         timeout_seconds=timeout_seconds,
         max_agent_steps=max_agent_steps,
     )
-
     if state.plan is None or not state.plan.steps:
         return _execution_error_update(
             errors=["No plan available for execution"],
@@ -187,7 +163,6 @@ def execute_tools(
                 )
             ],
         }
-
     try:
         result, step = executor.execute_current_step(state)
     except MaxAgentStepsExceededError as exc:
@@ -251,7 +226,6 @@ def execute_tools(
                 )
             ],
         }
-
     assert step is not None
     return {
         "tool_results": [result],
@@ -270,9 +244,7 @@ def execute_tools(
         ],
     }
 
-
 def validate_tool_arguments(tool_name: str, inputs: dict[str, str]) -> list[str]:
-    """Validate tool arguments against the canonical input specification."""
     allowed = ALLOWED_TOOL_INPUTS.get(tool_name)
     if allowed is None:
         return [f"tool '{tool_name}' has no registered input specification"]
@@ -286,12 +258,9 @@ def validate_tool_arguments(tool_name: str, inputs: dict[str, str]) -> list[str]
 
     return errors
 
-
 def resolve_tool_inputs(step: PlanStep, state: AgentState) -> dict[str, str]:
-    """Resolve plan step inputs using normalized artifact metadata."""
     allowed = ALLOWED_TOOL_INPUTS.get(step.tool_name, frozenset())
     resolved = {key: value for key, value in step.inputs.items() if key in allowed}
-
     artifact_id = resolved.get("artifact_id")
     if artifact_id:
         for artifact in state.normalized_contents:
@@ -302,7 +271,6 @@ def resolve_tool_inputs(step: PlanStep, state: AgentState) -> dict[str, str]:
                     url = artifact.metadata["youtube_url"]
                     if isinstance(url, str):
                         resolved.setdefault("url", url)
-
     upstream_text = _text_from_prior_tool_results(state)
     if "text" in allowed and "text" not in resolved and upstream_text:
         resolved["text"] = upstream_text
@@ -324,7 +292,6 @@ def resolve_tool_inputs(step: PlanStep, state: AgentState) -> dict[str, str]:
 
     return resolved
 
-
 def _text_from_prior_tool_results(state: AgentState) -> str:
     parts: list[str] = []
     for result in state.tool_results:
@@ -335,7 +302,6 @@ def _text_from_prior_tool_results(state: AgentState) -> str:
             parts.append(text)
     return "\n\n".join(parts)
 
-
 def _compare_sources_from_prior_results(state: AgentState) -> list[str]:
     sources: list[str] = []
     for result in state.tool_results:
@@ -345,7 +311,6 @@ def _compare_sources_from_prior_results(state: AgentState) -> list[str]:
         if text:
             sources.append(text)
     return sources
-
 
 def _youtube_url_from_prior_results(state: AgentState) -> str | None:
     from multimodal_agent.utilities.urls import extract_urls, validate_youtube_url
@@ -361,14 +326,12 @@ def _youtube_url_from_prior_results(state: AgentState) -> str | None:
                 return url
     return None
 
-
 def normalize_tool_result(
     raw_result: ToolResult,
     *,
     tool_name: str,
     latency_ms: float,
 ) -> ToolResult:
-    """Ensure tool output conforms to the ToolResult contract."""
     if not isinstance(raw_result, ToolResult):
         return ToolResult(
             tool_name=tool_name,
@@ -376,7 +339,6 @@ def normalize_tool_result(
             error="Tool returned an invalid result type",
             latency_ms=latency_ms,
         )
-
     if raw_result.status in _EXECUTOR_SUCCESS_STATUSES:
         status = raw_result.status
     else:
@@ -390,7 +352,6 @@ def normalize_tool_result(
         }
     )
 
-
 def _failed_result(tool_name: str, *, error: str, latency_ms: float) -> ToolResult:
     return ToolResult(
         tool_name=tool_name,
@@ -398,7 +359,6 @@ def _failed_result(tool_name: str, *, error: str, latency_ms: float) -> ToolResu
         error=error,
         latency_ms=latency_ms,
     )
-
 
 def _execution_error_update(
     *,
@@ -420,17 +380,14 @@ def _execution_error_update(
         update["constraints"] = constraints
     return update
 
-
 def _agent_step_count(state: AgentState) -> int:
     value = state.constraints.get(AGENT_STEP_COUNT_KEY, 0)
     return int(value) if value is not None else 0
-
 
 def _increment_agent_step_count(state: AgentState) -> dict[str, str | int | float | bool | None]:
     constraints = dict(state.constraints)
     constraints[AGENT_STEP_COUNT_KEY] = _agent_step_count(state) + 1
     return constraints
-
 
 def _elapsed_ms(started: float) -> float:
     return round((time.perf_counter() - started) * 1000, 2)

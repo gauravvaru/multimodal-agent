@@ -1,11 +1,7 @@
-"""Audio transcription tool."""
-
 from __future__ import annotations
-
 import tempfile
 import time
 from pathlib import Path
-
 from multimodal_agent.models.tools import ToolResult
 from multimodal_agent.services.storage_service import load_artifact_bytes
 from multimodal_agent.tools._tool_utils import elapsed_ms
@@ -14,7 +10,6 @@ _TOOL_NAME = "audio_transcribe"
 
 
 def transcribe_audio(source: str) -> ToolResult:
-    """Transcribe audio input using faster-whisper when available."""
     started = time.perf_counter()
 
     if not source or not source.strip():
@@ -110,7 +105,7 @@ def transcribe_audio(source: str) -> ToolResult:
             confidence=0.85,
             latency_ms=elapsed_ms(started),
         )
-    except Exception as exc:  # noqa: BLE001 - transcription failures must degrade gracefully
+    except Exception as exc: 
         return ToolResult(
             tool_name=_TOOL_NAME,
             status="failed",

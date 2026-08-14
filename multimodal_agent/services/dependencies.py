@@ -1,7 +1,4 @@
-"""Default runtime dependency wiring."""
-
 from __future__ import annotations
-
 from multimodal_agent.agent.graph import GraphDependencies
 from multimodal_agent.agent.nodes.planner import AgentPlanner
 from multimodal_agent.agent.nodes.synthesis import AgentSynthesisService
@@ -12,9 +9,7 @@ from multimodal_agent.services.llm_provider import (
 )
 from multimodal_agent.tools.registry import create_default_tool_registry
 
-
 def build_default_graph_dependencies() -> GraphDependencies:
-    """Build production graph dependencies with configured LLM and tools."""
     registry = create_default_tool_registry()
     llm_client = build_synthesis_llm_client()
     

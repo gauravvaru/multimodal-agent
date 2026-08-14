@@ -1,8 +1,5 @@
-"""FastAPI application entrypoint."""
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from multimodal_agent.api.routes import router
 from multimodal_agent.config import get_settings
 from multimodal_agent.config.langsmith import configure_langsmith_tracing

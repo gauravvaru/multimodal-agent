@@ -1,9 +1,5 @@
-"""Code explanation tool."""
-
 from __future__ import annotations
-
 import time
-
 from multimodal_agent.models.synthesis import CodeExplanationResponse, format_code_explanation_response
 from multimodal_agent.models.tools import ToolResult
 from multimodal_agent.services.llm_provider import (
@@ -27,7 +23,6 @@ _FORBIDDEN_CODE_PATTERNS = (
 
 
 def explain_code(code: str) -> ToolResult:
-    """Explain provided source code. Analysis only — never executes code."""
     started = time.perf_counter()
 
     if not code or not code.strip():

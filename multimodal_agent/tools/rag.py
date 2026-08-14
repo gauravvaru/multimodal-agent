@@ -1,9 +1,5 @@
-"""RAG retrieval tool."""
-
 from __future__ import annotations
-
 import time
-
 from multimodal_agent.config.settings import get_settings
 from multimodal_agent.models.tools import ToolResult
 from multimodal_agent.rag.pipeline import RAGPipeline
@@ -12,7 +8,6 @@ _TOOL_NAME = "rag"
 
 
 def retrieve_evidence(query: str, context: str = "") -> ToolResult:
-    """Retrieve grounded evidence for a query from indexed session documents."""
     started = time.perf_counter()
     normalized_query = (query or "").strip()
     if not normalized_query:

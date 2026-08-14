@@ -1,7 +1,4 @@
-"""Clarification gate node."""
-
 from __future__ import annotations
-
 from multimodal_agent.agent.types import StateUpdate
 from multimodal_agent.models.state import AgentState
 from multimodal_agent.services.clarification_service import ClarificationService
@@ -16,7 +13,6 @@ def clarification_gate(
     clarification_service: ClarificationService | None = None,
     confidence_threshold: float = _DEFAULT_CONFIDENCE_THRESHOLD,
 ) -> StateUpdate:
-    """Decide whether clarification is required before planning."""
     if state.intent is None:
         return {
             "errors": ["Intent is required before clarification"],

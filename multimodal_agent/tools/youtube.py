@@ -1,10 +1,6 @@
-"""YouTube transcript tool."""
-
 from __future__ import annotations
-
 import re
 import time
-
 from multimodal_agent.config.settings import get_settings
 from multimodal_agent.models.tools import ToolResult
 from multimodal_agent.utilities.urls import validate_youtube_url
@@ -17,7 +13,6 @@ _VIDEO_ID_PATTERN = re.compile(
 
 
 def fetch_youtube_transcript(url: str) -> ToolResult:
-    """Fetch transcript for a YouTube URL."""
     started = time.perf_counter()
     settings = get_settings()
     errors = validate_youtube_url(url, block_private_hosts=settings.block_private_urls)
@@ -50,7 +45,7 @@ def fetch_youtube_transcript(url: str) -> ToolResult:
 
     try:
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
-    except Exception as exc:  # noqa: BLE001 - transcript failures must degrade gracefully
+    except Exception as exc: 
         message = str(exc) or "YouTube transcript is unavailable"
         return ToolResult(
             tool_name=_TOOL_NAME,

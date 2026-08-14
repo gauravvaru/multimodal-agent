@@ -1,7 +1,4 @@
-"""Input normalization node."""
-
 from __future__ import annotations
-
 import mimetypes
 
 from multimodal_agent.agent.types import StateUpdate
@@ -14,7 +11,6 @@ from multimodal_agent.utilities.urls import is_youtube_url, validate_youtube_url
 
 
 def normalize_inputs(state: AgentState) -> StateUpdate:
-    """Normalize inbound artifacts into canonical state content."""
     if state.errors:
         return {
             "trace": [
@@ -58,7 +54,6 @@ def _normalize_artifact(artifact: InputArtifact, *, index: int) -> NormalizedArt
         content_type=artifact.content_type or (_guess_content_type(source) if source else None),
         metadata=metadata,
     )
-
 
 def _detect_artifact_type(artifact: InputArtifact, *, source: str | None) -> str:
     filename = (artifact.filename or source or "").lower()

@@ -1,7 +1,4 @@
-"""LangGraph stream event translation."""
-
 from __future__ import annotations
-
 import json
 import time
 from collections.abc import Iterator
@@ -42,8 +39,6 @@ _NODE_MESSAGES: dict[str, str] = {
 
 
 class GraphStreamTranslator:
-    """Translate LangGraph stream chunks into safe public events."""
-
     def __init__(self, *, request_id: str) -> None:
         self._request_id = request_id
         self._active_node: str | None = None
@@ -265,7 +260,6 @@ def iter_graph_stream_events(
     *,
     request_id: str,
 ) -> Iterator[AgentStreamEvent]:
-    """Convert a LangGraph stream iterator into public SSE events."""
     translator = GraphStreamTranslator(request_id=request_id)
     for chunk in stream:
         yield from translator.translate_chunk(chunk)
@@ -273,14 +267,10 @@ def iter_graph_stream_events(
 
 
 def serialize_stream_event(event: AgentStreamEvent) -> str:
-    """Serialize one stream event as an SSE data line payload."""
     return event.to_sse_data()
 
-
 def format_sse(event: AgentStreamEvent) -> str:
-    """Format a stream event for Server-Sent Events transport."""
     return f"data: {serialize_stream_event(event)}\n\n"
-
 
 def _normalize_update(update: Any) -> dict[str, Any]:
     if isinstance(update, dict):

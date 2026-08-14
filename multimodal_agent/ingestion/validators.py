@@ -1,9 +1,5 @@
-"""Inbound artifact validation."""
-
 from __future__ import annotations
-
 from pathlib import PurePath
-
 from multimodal_agent.models.requests import InputArtifact
 from multimodal_agent.utilities.mime import detect_mime_type
 from multimodal_agent.utilities.security import (
@@ -29,14 +25,12 @@ ALLOWED_MIME_TYPES = frozenset(
     }
 )
 
-
 def validate_artifact(
     artifact: InputArtifact,
     *,
     max_size_mb: int,
     size_bytes: int | None = None,
 ) -> list[str]:
-    """Validate a single artifact reference and return validation errors."""
     errors: list[str] = []
     filename = artifact.filename or ""
     label = sanitize_filename(filename) if filename else (artifact.source or "artifact")
@@ -67,7 +61,6 @@ def validate_upload(
     size_bytes: int,
     max_size_mb: int,
 ) -> list[str]:
-    """Validate an uploaded file before ingestion."""
     errors: list[str] = []
 
     if not filename or not filename.strip():
@@ -94,7 +87,6 @@ def validate_upload(
 
     return errors
 
-
 def validate_upload_bytes(
     *,
     filename: str,
@@ -102,7 +94,6 @@ def validate_upload_bytes(
     content_type: str | None,
     max_size_mb: int,
 ) -> list[str]:
-    """Validate uploaded bytes including empty and corrupt file checks."""
     errors = validate_upload(
         filename=filename,
         content_type=content_type,
@@ -117,11 +108,9 @@ def validate_upload_bytes(
 
 
 def validate_upload_count(file_count: int, *, max_files: int) -> list[str]:
-    """Validate the number of uploaded files in a single request."""
     if file_count > max_files:
         return [f"too many files uploaded: maximum allowed is {max_files}"]
     return []
-
 
 def _validate_extension(filename: str, *, label: str | None = None) -> list[str]:
     extension = PurePath(filename).suffix.lower()

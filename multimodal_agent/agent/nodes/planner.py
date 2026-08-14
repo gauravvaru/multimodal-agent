@@ -1,14 +1,10 @@
-"""Planning nodes and agent planner."""
-
 from __future__ import annotations
 from typing import Any
-
 from multimodal_agent.agent.types import StateUpdate
 from multimodal_agent.models.state import AgentState
 from multimodal_agent.services.planner_service import AgentPlanner, PlannerService, PlanValidationError, validate_generated_plan
 from multimodal_agent.tools.registry import ToolRegistry, create_default_tool_registry
 from multimodal_agent.utilities.tracing import TraceEvent
-
 
 def create_plan(
     state: AgentState,
@@ -17,7 +13,6 @@ def create_plan(
     registry: ToolRegistry | None = None,
     llm_client: Any = None,
 ) -> StateUpdate:
-    """Create the minimum required tool sequence."""
     if state.clarification_required:
         return {
             "trace": [
@@ -58,7 +53,6 @@ def create_plan(
             )
         ],
     }
-
 
 def validate_plan(
     state: AgentState,

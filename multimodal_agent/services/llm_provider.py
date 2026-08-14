@@ -1,12 +1,7 @@
-"""LLM provider configuration and LangChain chat model factory."""
-
 from __future__ import annotations
-
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, TypeVar
-
 from pydantic import BaseModel
-
 from multimodal_agent.config.settings import get_settings
 from multimodal_agent.services.intent_service import IntentService
 
@@ -20,7 +15,6 @@ if TYPE_CHECKING:
     )
 
 T = TypeVar("T", bound=BaseModel)
-
 StructuredInvokeFn = Callable[..., BaseModel]
 _structured_invoke_override: StructuredInvokeFn | None = None
 
@@ -28,19 +22,14 @@ _structured_invoke_override: StructuredInvokeFn | None = None
 class LLMNotConfiguredError(RuntimeError):
     """Raised when an LLM operation is requested without provider configuration."""
 
-
 class LLMInvocationError(RuntimeError):
     """Raised when the configured LLM provider fails."""
 
-
 def is_llm_configured() -> bool:
-    """Return True when an LLM provider is configured with credentials."""
     settings = get_settings()
     return bool(settings.llm_api_key and settings.llm_api_key.strip())
 
-
 def get_chat_model() -> ChatGoogleGenerativeAI | None:
-    """Return a configured LangChain chat model, or None when not configured."""
     settings = get_settings()
     if not is_llm_configured():
         return None
@@ -60,9 +49,7 @@ def get_chat_model() -> ChatGoogleGenerativeAI | None:
         temperature=0,
     )
 
-
 def require_chat_model() -> ChatGoogleGenerativeAI:
-    """Return a configured chat model or raise when credentials are missing."""
     model = get_chat_model()
     if model is None:
         raise LLMNotConfiguredError(
@@ -70,17 +57,12 @@ def require_chat_model() -> ChatGoogleGenerativeAI:
         )
     return model
 
-
 def set_structured_invoke_for_tests(handler: StructuredInvokeFn | None) -> None:
-    """Inject a structured LLM handler for tests (dependency injection)."""
     global _structured_invoke_override
     _structured_invoke_override = handler
 
-
 def reset_structured_invoke_for_tests() -> None:
-    """Clear the test structured LLM handler."""
     set_structured_invoke_for_tests(None)
-
 
 def invoke_structured(
     prompt: str,
@@ -88,7 +70,6 @@ def invoke_structured(
     *,
     system: str | None = None,
 ) -> T:
-    """Invoke the configured LLM and return structured output."""
     import time
     if _structured_invoke_override is not None:
         try:
@@ -127,9 +108,7 @@ def invoke_structured(
             
     raise LLMInvocationError("LLM quota exceeded. Please try again later or use a different key.") from last_exc
 
-
 def invoke_text(prompt: str, *, system: str | None = None) -> str:
-    """Invoke the configured LLM and return plain text."""
     import time
     model = require_chat_model()
     messages = _build_messages(prompt, system=system)
@@ -165,17 +144,12 @@ def invoke_text(prompt: str, *, system: str | None = None) -> str:
 
     raise LLMInvocationError("LLM quota exceeded. Please try again later or use a different key.") from last_exc
 
-
 def build_synthesis_llm_client() -> SynthesisLLMClient | None:
-    """Return the default synthesis client when LLM credentials are configured."""
     if not is_llm_configured():
         return None
     return LangChainSynthesisLLMClient()
 
-
 class LangChainSynthesisLLMClient:
-    """Structured synthesis client backed by the configured LangChain chat model."""
-
     def synthesize_structured(self, context: SynthesisContext, output_model: type[T]) -> T:
         from multimodal_agent.agent.nodes.synthesis import build_synthesis_prompt
 
@@ -186,17 +160,12 @@ class LangChainSynthesisLLMClient:
         )
         return invoke_structured(prompt, output_model, system=system)
 
-
 def build_intent_service() -> IntentService | None:
-    """Return the default intent service when LLM credentials are configured."""
     if not is_llm_configured():
         return None
     return LangChainIntentLLMClient()
 
-
 class LangChainIntentLLMClient(IntentService):
-    """Structured intent detection client backed by the configured LangChain chat model."""
-
     def detect_semantic(
         self,
         query: str,
@@ -223,17 +192,12 @@ class LangChainIntentLLMClient(IntentService):
         )
         return invoke_structured(prompt, Intent, system=system)
 
-
 def build_planner_llm_client() -> PlannerLLMClient | None:
-    """Return the default planner LLM client when LLM credentials are configured."""
     if not is_llm_configured():
         return None
     return LangChainPlannerLLMClient()
 
-
 class LangChainPlannerLLMClient:
-    """Structured planner client backed by the configured LangChain chat model."""
-
     def generate_plan(self, context: PlannerContext) -> Any:
         from multimodal_agent.services.planner_service import PlanDraft, build_planner_prompt
 
@@ -244,7 +208,6 @@ class LangChainPlannerLLMClient:
             "Ensure the plan uses the minimal steps necessary."
         )
         return invoke_structured(prompt, PlanDraft, system=system)
-
 
 def _build_messages(prompt: str, *, system: str | None) -> list[dict[str, str]]:
     messages: list[dict[str, str]] = []

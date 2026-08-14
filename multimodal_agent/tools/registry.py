@@ -1,9 +1,5 @@
-"""Tool registration and lookup."""
-
 from __future__ import annotations
-
 from collections.abc import Callable
-
 from multimodal_agent.models.tools import ToolResult
 from multimodal_agent.tools.audio import transcribe_audio
 from multimodal_agent.tools.code_analysis import explain_code
@@ -15,23 +11,17 @@ from multimodal_agent.tools.sentiment import analyze_sentiment
 from multimodal_agent.tools.summarization import summarize_text
 from multimodal_agent.tools.youtube import fetch_youtube_transcript
 
-
 class ToolRegistry:
-    """Registry for deterministic and LLM-backed tools."""
-
     def __init__(self) -> None:
         self._tools: dict[str, Callable[..., ToolResult]] = {}
 
     def register(self, name: str, tool: Callable[..., ToolResult]) -> None:
-        """Register a tool by name."""
         self._tools[name] = tool
 
     def get(self, name: str) -> Callable[..., ToolResult]:
-        """Return a registered tool."""
         return self._tools[name]
 
     def names(self) -> list[str]:
-        """Return registered tool names."""
         return sorted(self._tools)
 
 
@@ -77,7 +67,6 @@ def _code_analysis_tool(**kwargs: str) -> ToolResult:
 
 
 def create_default_tool_registry() -> ToolRegistry:
-    """Return a registry with the canonical agent tool names."""
     registry = ToolRegistry()
     registry.register("pdf_extract", _pdf_extract_tool)
     registry.register("summarize", _summarize_tool)
