@@ -119,7 +119,6 @@ class ToolExecutor:
 
 class ExecutionPreconditionError(Exception):
     """Raised when the executor cannot run a step."""
-
 class MaxAgentStepsExceededError(Exception):
     """Raised when the configured agent step limit is reached."""
     def __init__(self, limit: int) -> None:
@@ -274,6 +273,11 @@ def resolve_tool_inputs(step: PlanStep, state: AgentState) -> dict[str, str]:
     upstream_text = _text_from_prior_tool_results(state)
     if "text" in allowed and "text" not in resolved and upstream_text:
         resolved["text"] = upstream_text
+    
+    if step.tool_name == "code_analysis" and upstream_text:
+        resolved["text"] = upstream_text
+        resolved.pop("code", None)
+        resolved.pop("source", None)
 
     if step.tool_name == "rag" and "query" in allowed:
         resolved.setdefault("query", state.user_query.strip())
